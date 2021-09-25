@@ -7,7 +7,7 @@ sourcedir = "./"
 
 -- `depends`
 -- This is a comma separated list of deps, eg: `depends = base, contrib`
-depends = base, contrib
+depends = base, contrib, idrall
 
 -- `modules`
 -- This is a comma separated list of the modules you'll want to export
