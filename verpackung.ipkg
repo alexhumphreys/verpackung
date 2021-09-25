@@ -1,0 +1,24 @@
+package verpackung
+
+-- `sourcedir`
+-- The `./HelloIdris2` dir is in the root of the repo, so this is `"./"`
+-- If you were to move that to `"./src/` then you'd update this field
+sourcedir = "./"
+
+-- `depends`
+-- This is a comma separated list of deps, eg: `depends = base, contrib`
+depends = base, contrib
+
+-- `modules`
+-- This is a comma separated list of the modules you'll want to export
+-- to the final artifact
+modules =
+    Verpackung.Main
+
+-- `main`
+-- the entrypoint for the main function for the executable
+main = Verpackung.Main
+
+-- `executable`
+-- the name of the executable in the `./build/exec/` dir
+executable = verpackung

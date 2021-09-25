@@ -1,3 +1,5 @@
+module Verpackung.Main
+
 %foreign "node:lambda:(x)=>x+\"oo\""
 echo__prim : String -> PrimIO String
 
