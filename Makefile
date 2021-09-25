@@ -1,5 +1,5 @@
 repl:
-	rlwrap idris2 Verpackung/Main.idr
+	rlwrap -n idris2 --cg node -p contrib -p idrall Verpackung/Main.idr
 
 edit-tests1:
 	cd ./tests/verpackung/test001 && rlwrap idris2 -p verpackung Main.idr

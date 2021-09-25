@@ -14,6 +14,7 @@ depends = base, contrib
 -- to the final artifact
 modules =
     Verpackung.Main
+    , Verpackung.Derive.Derive
 
 -- `main`
 -- the entrypoint for the main function for the executable
