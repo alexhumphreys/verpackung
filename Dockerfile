@@ -1,23 +1,21 @@
-FROM snazzybucket/idris2:latest as builder
+FROM snazzybucket/idris2api:latest as builder
 
-RUN mkdir /opt/hello-idris2
-WORKDIR /opt/hello-idris2
+RUN mkdir /opt/verpackung
+WORKDIR /opt/verpackung
 
 COPY . ./
 RUN true
 
-RUN make build-executable
-RUN pwd
-RUN ls -R build
+RUN make build
 
 FROM ubuntu:20.04
 
-RUN apt-get update && apt-get install --yes chezscheme && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --yes nodejs && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /opt/hello-idris2/exec
+RUN mkdir -p /opt/verpackung/exec
 
-COPY --from=builder /opt/hello-idris2/build/exec /opt/hello-idris2/exec
+COPY --from=builder /opt/verpackung/build/exec /opt/verpackung/exec
 
-ENV PATH="/opt/hello-idris2/exec:${PATH}"
+ENV PATH="/opt/verpackung/exec:${PATH}"
 
-ENTRYPOINT /opt/hello-idris2/exec/helloIdris2
+ENTRYPOINT /opt/verpackung/exec/verpackung

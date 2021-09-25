@@ -51,10 +51,10 @@ time-time:
 	time ${MAKE} test INTERACTIVE=''
 
 docs:
-	idris2 --mkdoc helloidris2.ipkg
+	idris2 --mkdoc verpackung.ipkg
 
 docker-build:
-	docker build . -t snazzybucket/hello-idris2
+	docker build . -t snazzybucket/verpackung
 
 docker-run:
-	docker run snazzybucket/hello-idris2
+	docker run snazzybucket/verpackung
