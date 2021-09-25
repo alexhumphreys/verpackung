@@ -1,13 +1,15 @@
+INIGO_LOCAL_PATH=../../../build/exec/verpackung
+
 INTERACTIVE ?= --interactive
 
 .PHONY: testbin test
 
 test:
-	./build/exec/runtests idris2 $(INTERACTIVE) --failure-file failures --only $(only)
+	./build/exec/runtests $(INIGO_LOCAL_PATH) $(INTERACTIVE) --failure-file failures --only $(only)
 
 retest:
 	@touch failures
-	./build/exec/runtests idris2 $(INTERACTIVE) --failure-file failures --only-file failures --only $(only)
+	./build/exec/runtests $(INIGO_LOCAL_PATH) $(INTERACTIVE) --failure-file failures --only-file failures --only $(only)
 
 testbin:
 	idris2 --build tests.ipkg

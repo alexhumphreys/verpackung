@@ -44,7 +44,7 @@ test-only:
 retest-only:
 	${MAKE} -C tests retest
 
-test: build install testbin test-only
+test: build testbin test-only
 retest: build install testbin retest-only
 
 time-time:
