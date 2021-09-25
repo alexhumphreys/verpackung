@@ -1,3 +1,4 @@
 build
 *.idr~
 tests/failures
+tmp/*
