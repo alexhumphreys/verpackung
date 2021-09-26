@@ -147,7 +147,7 @@ Show PackageSet where
 record PackageSetEntry where
   constructor MkPackageSetEntry
   id : String
-  sha : String
+  sha : Maybe String
 -- %runElab (deriveFromDhall Record `{ PackageSetEntry })
 
 Show PackageSetEntry where
@@ -156,7 +156,11 @@ Show PackageSetEntry where
 
 data PackageSetEntryStatus
   = Passing PackageSetEntry
-  | Failing PackageSetEntry VerpackungError
+  | Failing PackageSetEntry
+
+Show PackageSetEntryStatus where
+  show (Passing x) = "Passing \{show x}"
+  show (Failing x) = "Failing \{show x}"
 
 doBuild : Package -> IOEither VerpackungError PackageSetEntryStatus
 doBuild (MkPackage id repo ipkgFile depends) =
@@ -167,13 +171,18 @@ doBuild (MkPackage id repo ipkgFile depends) =
   cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts
   sha <- exec $ MkCommand "git" (words "-C \{workdir} rev-parse HEAD") initOpts
   buildRes <- exec $ MkCommand "idris2" (words "--build \{ipkgFile}") $ MkCommandOptions $ Just workdir
-  pure $ Passing $ MkPackageSetEntry id (stdout sha)
+  -- TODO: ^^ failing build bails here so never reaches the case statement
+  case status buildRes of
+       0 => pure $ Passing $ MkPackageSetEntry id $ Just (stdout sha)
+       _ => pure $ Failing $ MkPackageSetEntry id $ Just (stdout sha)
 
-doBuild' : List Package -> IOEither VerpackungError PackageSetEntryStatus
-doBuild' [] = liftEither $ Left $ OtherError "No package remaining"
-doBuild' (x :: xs) = do
-  _ <- doBuild x
-  doBuild' xs
+go : List (Package, IOEither VerpackungError PackageSetEntryStatus) -> IO (List PackageSetEntryStatus)
+go [] = pure []
+go ((pkg, f) :: xs) = do
+  Right res <- liftIOEither f
+  | Left e => let this = Failing $ MkPackageSetEntry (id pkg) Nothing in
+    pure (this :: !(go xs))
+  pure (res :: !(go xs))
 
 main : IO ()
 main = do
@@ -181,7 +190,9 @@ main = do
   | Left e => putStrLn $ !(fancyError e)
   putStrLn $ show pkgs
   let xs = packages pkgs
-  _ <- liftIOEither $ doBuild' xs -- TODO use traverse
+  let pkgs = (map (\x=> (x, doBuild x)) xs)
+  let final = go pkgs
+  putStrLn $ show !(final)
   pure ()
 
 {-
