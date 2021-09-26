@@ -1,4 +1,4 @@
-module Idrall.IOEither
+module Verpackung.IOEither
 
 public export
 data IOEither a b

@@ -11,7 +11,7 @@ import Language.Reflection
 echo__prim : String -> PrimIO String
 
 export
-echo : HasIO io => String -> io String
+echo : String -> IO String
 echo =
   primIO . echo__prim
 
@@ -42,7 +42,6 @@ Show Command where
 node:lambda:(cmd)=> {
   var x = JSON.parse(cmd);
   return function format(proc) {
-    console.log(proc);
     if (proc.error) {
     return JSON.stringify(
       { error: proc.error.toString() }
@@ -81,28 +80,44 @@ Show Response where
   show (MkResponse status stdout stderr) =
     "MkResponse \{show status} \{show stdout} \{show stderr}"
 
-parseResponse : String -> Either CommandError Response
+data VerpackungError
+  = JSError CommandError
+  | ShellError Response
+  | ParseError String
+  | OtherError String
+
+Show VerpackungError where
+  show (JSError x) = "JSError \{show x}"
+  show (ShellError x) = "ShellError \{show x}"
+  show (ParseError x) = "ParseError \{show x}"
+  show (OtherError x) = "OtherError \{show x}"
+
+parseResponse : String -> Either VerpackungError Response
 parseResponse x =
   case Language.JSON.parse x of
-       Nothing => Left ?fooo_1
+       Nothing => Left $ ParseError x
        (Just json) => go json
 where
-  go : JSON -> Either CommandError Response
+  go : JSON -> Either VerpackungError Response
   go json =
     let err = fromJSON {a=CommandError} json
         res = fromJSON {a=Response} json
     in
     case (res, err) of
-         ((Just r), Nothing) => Right r
-         (Nothing, (Just e)) => Left e
-         _ => ?err13
+         ((Just r), Nothing) =>
+            case status r of
+                 0 => Right r
+                 _ => Left $ ShellError r
+         (Nothing, (Just e)) => Left $ JSError e
+         _ => Left $ OtherError "Unknown response \{show json}"
 
-exec_internal : HasIO io => Command -> io String
+exec_internal : Command -> IO String
 exec_internal cmd =
   (primIO . exec__prim) (show $ toJSON cmd)
 
-exec : HasIO io => Command -> io (Either CommandError Response)
-exec str = do
+exec : Command -> IOEither VerpackungError Response
+exec str = MkIOEither $
+  do
   putStrLn $ show $ str
   res <- exec_internal str
   putStrLn $ res
@@ -128,19 +143,17 @@ Show PackageSet where
   show (MkPackageSet packages)  =
     "MkPackage \{show packages}"
 
-doBuild : HasIO io => Package -> io ()
+doBuild : Package -> IOEither VerpackungError ()
 doBuild (MkPackage id repo ipkgFile) =
   let workdir = "./tmp/\{id}" in
   do
-  -- Just lsRes <- exec $ MkCommand "lss" [] initOpts | Nothing => putStrLn "Failed to run lss"
   lsRes <- exec $ MkCommand "ls" [] initOpts
-  putStrLn $ show lsRes
-  Right cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts | Left e => ?err2
-  putStrLn $ show cloneRes
-  Right buildRes <- exec $ MkCommand "idris2" (words "--install \{ipkgFile}") $ MkCommandOptions $ Just workdir | Left e => ?err3
-  putStrLn $ show buildRes
+  cleanup <- exec $ MkCommand "rm" (words "-rf \{workdir}") initOpts
+  cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts
+  buildRes <- exec $ MkCommand "idris2" (words "--install \{ipkgFile}") $ MkCommandOptions $ Just workdir
+  pure ()
 
-doBuild' : HasIO io => List Package -> io ()
+doBuild' : List Package -> IOEither VerpackungError ()
 doBuild' [] = pure ()
 doBuild' (x :: xs) = do
   doBuild x
@@ -152,7 +165,8 @@ main = do
   | Left e => putStrLn $ !(fancyError e)
   putStrLn $ show pkgs
   let x = packages pkgs
-  doBuild' x
+  _ <- liftIOEither $ doBuild' x
+  pure ()
 
 {-
 :exec main
