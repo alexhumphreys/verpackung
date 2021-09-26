@@ -128,11 +128,12 @@ record Package where
   id : String
   repo : String
   ipkgFile : String
+  depends : List String
 %runElab (deriveFromDhall Record `{ Package })
 
 Show Package where
-  show (MkPackage id repo ipkgFile) =
-    "MkPackage \{show id} \{show repo} \{show ipkgFile}"
+  show (MkPackage id repo ipkgFile depends) =
+    "MkPackage \{show id} \{show repo} \{show ipkgFile} \{show depends}"
 
 record PackageSet where
   constructor MkPackageSet
@@ -143,20 +144,35 @@ Show PackageSet where
   show (MkPackageSet packages)  =
     "MkPackage \{show packages}"
 
-doBuild : Package -> IOEither VerpackungError ()
-doBuild (MkPackage id repo ipkgFile) =
+record PackageSetEntry where
+  constructor MkPackageSetEntry
+  id : String
+  sha : String
+-- %runElab (deriveFromDhall Record `{ PackageSetEntry })
+
+Show PackageSetEntry where
+  show (MkPackageSetEntry id sha) =
+    "MkPackage \{show id} \{show sha}"
+
+data PackageSetEntryStatus
+  = Passing PackageSetEntry
+  | Failing PackageSetEntry VerpackungError
+
+doBuild : Package -> IOEither VerpackungError PackageSetEntryStatus
+doBuild (MkPackage id repo ipkgFile depends) =
   let workdir = "./tmp/\{id}" in
   do
   lsRes <- exec $ MkCommand "ls" [] initOpts
   cleanup <- exec $ MkCommand "rm" (words "-rf \{workdir}") initOpts
   cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts
-  buildRes <- exec $ MkCommand "idris2" (words "--install \{ipkgFile}") $ MkCommandOptions $ Just workdir
-  pure ()
+  sha <- exec $ MkCommand "git" (words "-C \{workdir} rev-parse HEAD") initOpts
+  buildRes <- exec $ MkCommand "idris2" (words "--build \{ipkgFile}") $ MkCommandOptions $ Just workdir
+  pure $ Passing $ MkPackageSetEntry id (stdout sha)
 
-doBuild' : List Package -> IOEither VerpackungError ()
-doBuild' [] = pure ()
+doBuild' : List Package -> IOEither VerpackungError PackageSetEntryStatus
+doBuild' [] = liftEither $ Left $ OtherError "No package remaining"
 doBuild' (x :: xs) = do
-  doBuild x
+  _ <- doBuild x
   doBuild' xs
 
 main : IO ()
@@ -164,8 +180,8 @@ main = do
   Right pkgs <- liftIOEither $ deriveFromDhallString {ty=PackageSet} "./package-set/packages.dhall"
   | Left e => putStrLn $ !(fancyError e)
   putStrLn $ show pkgs
-  let x = packages pkgs
-  _ <- liftIOEither $ doBuild' x
+  let xs = packages pkgs
+  _ <- liftIOEither $ doBuild' xs -- TODO use traverse
   pure ()
 
 {-
