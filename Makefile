@@ -10,9 +10,11 @@ edit-tests2:
 clean:
 	rm -f tests/*.idr~
 	rm -f tests/*.ibc
-	rm -f Idrall/*.idr~
-	rm -f Idrall/*.ibc
+	rm -f Verpackung/*.idr~
+	rm -f Verpackung/*.ibc
 	rm -rf build/
+	rm -rf tmp/*
+	touch tmp/.keep
 	rm -rf tests/build/
 
 .PHONY: build

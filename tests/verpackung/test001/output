@@ -1,3 +1,5 @@
 foooo
-Just MkResponse 0 "Main.idr\nexpected\ninput\noutput\nrun\n" ""
+ls
+{"status":0,"stdout":"","stderr":""}
+Just MkResponse 0 "" ""
 (0, 0)-(0, 28)ReadFileError: File Not Found ./package-set/packages.dhall

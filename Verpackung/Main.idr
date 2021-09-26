@@ -15,26 +15,48 @@ echo : HasIO io => String -> io String
 echo =
   primIO . echo__prim
 
+record CommandOptions where
+  constructor MkCommandOptions
+  cwd : Maybe String
+%runElab deriveJSON defaultOpts `{CommandOptions}
+
+Show CommandOptions where
+  show (MkCommandOptions cwd) =
+    "MkCommandOptions \{show cwd}"
+
+initOpts : CommandOptions
+initOpts = MkCommandOptions Nothing
+
+record Command where
+  constructor MkCommand
+  command : String
+  args : List String
+  options : CommandOptions
+%runElab deriveJSON defaultOpts `{Command}
+
+Show Command where
+  show (MkCommand command args options) =
+    "MkCommand \{show command} \{show args} \{show options}"
+
 %foreign """
-node:lambda:(cmd)=> { return function format(proc)
+node:lambda:(cmd)=> { var x = JSON.parse(cmd); return function format(proc)
   { return JSON.stringify(
       { status: proc.status
-      , stdout: ""
-      , stderr: ""
+      , stdout: proc.output[1].toString().substring(0, 1024)
+      , stderr: proc.output[2].toString().substring(0, 1024)
       }
     );
-  }(require('child_process').spawnSync(cmd, [], {shell: true}))
+  }(require('child_process').spawnSync(x.command, x.args, x.options))
 }
 """
 exec__prim : String -> PrimIO String
--- TODO ^^^ shell: true is unsafe!
+-- TODO error if substring > 1024
 
 record Response where
   constructor MkResponse
   status : Int
   stdout : String
   stderr : String
-
 %runElab deriveJSON defaultOpts `{Response}
 
 Show Response where
@@ -46,13 +68,13 @@ parseResponse x = do
   x' <- Language.JSON.parse x
   fromJSON x'
 
-exec_internal : HasIO io => String -> io String
-exec_internal =
-  primIO . exec__prim
+exec_internal : HasIO io => Command -> io String
+exec_internal cmd =
+  (primIO . exec__prim) (show $ toJSON cmd)
 
-exec : HasIO io => String -> io (Maybe Response)
+exec : HasIO io => Command -> io (Maybe Response)
 exec str = do
-  putStrLn $ str
+  putStrLn $ show $ str
   res <- exec_internal str
   putStrLn $ res
   pure $ parseResponse res
@@ -78,10 +100,14 @@ Show PackageSet where
     "MkPackage \{show packages}"
 
 doBuild : HasIO io => Package -> io ()
-doBuild (MkPackage id repo ipkgFile) = do
-  cloneRes <- exec "git clone \{repo} ./tmp/\{id}"
+doBuild (MkPackage id repo ipkgFile) =
+  let workdir = "./tmp/\{id}" in
+  do
+  lsRes <- exec $ MkCommand "ls" [] initOpts
+  putStrLn $ show lsRes
+  cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts
   putStrLn $ show cloneRes
-  buildRes <- exec "cd ./tmp/\{id} && idris2 --install \{ipkgFile}"
+  buildRes <- exec $ MkCommand "idris2" (words "--install \{ipkgFile}") $ MkCommandOptions $ Just workdir
   putStrLn $ show buildRes
 
 doBuild' : HasIO io => List Package -> io ()
@@ -92,8 +118,6 @@ doBuild' (x :: xs) = do
 
 main : IO ()
 main = do
-  putStrLn $ !(echo "foo")
-  putStrLn $ show !(exec "ls")
   Right pkgs <- liftIOEither $ deriveFromDhallString {ty=PackageSet} "./package-set/packages.dhall"
   | Left e => putStrLn $ !(fancyError e)
   putStrLn $ show pkgs
