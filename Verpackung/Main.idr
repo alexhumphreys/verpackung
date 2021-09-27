@@ -170,11 +170,23 @@ doBuild (MkPackage id repo ipkgFile depends) =
   cleanup <- exec $ MkCommand "rm" (words "-rf \{workdir}") initOpts
   cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts
   sha <- exec $ MkCommand "git" (words "-C \{workdir} rev-parse HEAD") initOpts
+  copyDepends depends
   buildRes <- exec $ MkCommand "idris2" (words "--build \{ipkgFile}") $ MkCommandOptions $ Just workdir
   -- TODO: ^^ failing build bails here so never reaches the case statement
   case status buildRes of
        0 => pure $ Passing $ MkPackageSetEntry id $ Just (stdout sha)
        _ => pure $ Failing $ MkPackageSetEntry id $ Just (stdout sha)
+  where
+    copyDepends : List String -> IOEither VerpackungError ()
+    copyDepends [] = pure ()
+    copyDepends (dep :: xs) =
+      let depDir = "./tmp/\{id}/depends/\{dep}-0" in
+      do
+        _ <- exec $ MkCommand "mkdir" (words "-p \{depDir}") initOpts
+        _ <- exec $ MkCommand "cp" (words "-r ./tmp/\{dep}/build/ttc/ \{depDir}") initOpts
+        pure ()
+
+  -- sha <- exec $ MkCommand "git" (words "-C \{workdir} rev-parse HEAD") initOpts
 
 go : List (Package, IOEither VerpackungError PackageSetEntryStatus) -> IO (List PackageSetEntryStatus)
 go [] = pure []
