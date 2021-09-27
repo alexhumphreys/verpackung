@@ -4,6 +4,8 @@ import Verpackung.Derive.Derive
 import Idrall.API.V2
 import Language.JSON
 import Language.Reflection
+import System.File.ReadWrite
+import System.File.Handle
 
 %language ElabReflection
 
@@ -149,6 +151,7 @@ record PackageSetEntry where
   id : String
   sha : Maybe String
 -- %runElab (deriveFromDhall Record `{ PackageSetEntry })
+%runElab deriveJSON defaultOpts `{PackageSetEntry}
 
 Show PackageSetEntry where
   show (MkPackageSetEntry id sha) =
@@ -162,8 +165,16 @@ Show PackageSetEntryStatus where
   show (Passing x) = "Passing \{show x}"
   show (Failing x) = "Failing \{show x}"
 
+splitStatus : List PackageSetEntryStatus -> (List PackageSetEntry, List PackageSetEntry)
+splitStatus [] = ([], [])
+splitStatus (x :: xs) =
+  let rest = splitStatus xs in
+  case x of
+       (Passing y) => (y :: fst rest, snd rest)
+       (Failing y) => (fst rest, y :: snd rest)
+
 doBuild : Package -> IOEither VerpackungError PackageSetEntryStatus
-doBuild (MkPackage id repo ipkgFile depends) =
+doBuild pkg@(MkPackage id repo ipkgFile depends) =
   let workdir = "./tmp/\{id}" in
   do
   lsRes <- exec $ MkCommand "ls" [] initOpts
@@ -171,12 +182,19 @@ doBuild (MkPackage id repo ipkgFile depends) =
   cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts
   sha <- exec $ MkCommand "git" (words "-C \{workdir} rev-parse HEAD") initOpts
   copyDepends depends
-  buildRes <- exec $ MkCommand "idris2" (words "--build \{ipkgFile}") $ MkCommandOptions $ Just workdir
-  -- TODO: ^^ failing build bails here so never reaches the case statement
-  case status buildRes of
-       0 => pure $ Passing $ MkPackageSetEntry id $ Just (stdout sha)
-       _ => pure $ Failing $ MkPackageSetEntry id $ Just (stdout sha)
+  go $ buildRes workdir (stdout sha)
   where
+    go : IO PackageSetEntryStatus -> IOEither VerpackungError PackageSetEntryStatus
+    go x = MkIOEither $ do
+      x' <- x
+      pure $ pure $ x'
+    buildRes : String -> String -> IO PackageSetEntryStatus
+    buildRes workdir sha =
+      case exec $ MkCommand "idris2" (words "--build \{ipkgFile}") $ MkCommandOptions $ Just workdir of
+           (MkIOEither w) => do
+             Right w' <- w | Left err => pure $ Failing $ MkPackageSetEntry id $ Just sha
+             pure $ Passing $ MkPackageSetEntry id $ Just sha
+    -- TODO copy transitive dependencies
     copyDepends : List String -> IOEither VerpackungError ()
     copyDepends [] = pure ()
     copyDepends (dep :: xs) =
@@ -186,8 +204,6 @@ doBuild (MkPackage id repo ipkgFile depends) =
         _ <- exec $ MkCommand "cp" (words "-r ./tmp/\{dep}/build/ttc/ \{depDir}") initOpts
         pure ()
 
-  -- sha <- exec $ MkCommand "git" (words "-C \{workdir} rev-parse HEAD") initOpts
-
 go : List (Package, IOEither VerpackungError PackageSetEntryStatus) -> IO (List PackageSetEntryStatus)
 go [] = pure []
 go ((pkg, f) :: xs) = do
@@ -195,6 +211,17 @@ go ((pkg, f) :: xs) = do
   | Left e => let this = Failing $ MkPackageSetEntry (id pkg) Nothing in
     pure (this :: !(go xs))
   pure (res :: !(go xs))
+
+outputFiles : List PackageSetEntryStatus -> IO ()
+outputFiles xs =
+    let split = splitStatus xs in
+    ?outputFiles_rhs
+
+date : IO (Either VerpackungError String)
+date = do
+  Right res <- liftIOEither $ exec $ MkCommand "date" ["+%Y%m%d"] initOpts
+  | Left e => pure $ Left e
+  pure $ pure $ stdout res
 
 main : IO ()
 main = do
@@ -204,8 +231,18 @@ main = do
   let xs = packages pkgs
   let pkgs = (map (\x=> (x, doBuild x)) xs)
   let final = go pkgs
-  putStrLn $ show !(final)
-  pure ()
+  let split = splitStatus !final
+  let date = !date
+  putStrLn $ show split
+  case date of
+       (Left x) => putStrLn "failed to parse date"
+       (Right x) =>
+         let date' = trim x in
+         do
+         _ <- liftIOEither $ exec $ MkCommand "mkdir" ["./package-set/\{date'}"] initOpts
+         pass <- writeFile "./package-set/\{date'}/passing.json" (show $ toJSON $ fst split)
+         fail <- writeFile "./package-set/\{date'}/failing.json" (show $ toJSON $ snd split)
+         pure ()
 
 {-
 :exec main
