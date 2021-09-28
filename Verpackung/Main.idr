@@ -196,7 +196,7 @@ doBuild pkg@(MkPackage id repo ipkgFile depends) =
       do
         _ <- exec $ MkCommand "mkdir" (words "-p \{depDir}") initOpts
         _ <- exec $ MkCommand "cp" (words "-r ./tmp/\{dep}/build/ttc/ \{depDir}") initOpts
-        pure ()
+        copyDepends xs
 
 go : List (Package, IOEither VerpackungError PackageSetEntryStatus) -> IO (List PackageSetEntryStatus)
 go [] = pure []
