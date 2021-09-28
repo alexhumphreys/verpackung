@@ -35,10 +35,6 @@ jobs:
         with:
           path: ~/.idris2/
           key: ${{ env.idris2-commit }}-idris2-with-api
-      - name: Get Idris2 Submodule
-        if: steps.cache-idris2-with-api.outputs.cache-hit != 'true'
-        run: |
-          git submodule update --init Idris2
       - name: Install build dependencies
         if: steps.cache-idris2-with-api.outputs.cache-hit != 'true'
         run: |
