@@ -7,15 +7,9 @@ import Language.Reflection
 import System.File.ReadWrite
 import System.File.Handle
 
+%default covering
+
 %language ElabReflection
-
-%foreign "node:lambda:(x)=>x+\"oo\""
-echo__prim : String -> PrimIO String
-
-export
-echo : String -> IO String
-echo =
-  primIO . echo__prim
 
 record CommandOptions where
   constructor MkCommandOptions
@@ -212,16 +206,22 @@ go ((pkg, f) :: xs) = do
     pure (this :: !(go xs))
   pure (res :: !(go xs))
 
-outputFiles : List PackageSetEntryStatus -> IO ()
-outputFiles xs =
-    let split = splitStatus xs in
-    ?outputFiles_rhs
+getStdout : Command -> IO (Either VerpackungError String)
+getStdout cmd = do
+  Right res <- liftIOEither $ exec $ cmd
+  | Left e => pure $ Left e
+  pure $ pure $ trim $ stdout res
+
+idrisVersion : IO (Either VerpackungError String)
+idrisVersion = getStdout $ MkCommand "idris2" ["--version"] initOpts
 
 date : IO (Either VerpackungError String)
-date = do
-  Right res <- liftIOEither $ exec $ MkCommand "date" ["+%Y%m%d"] initOpts
-  | Left e => pure $ Left e
-  pure $ pure $ stdout res
+date = getStdout $ MkCommand "date" ["+%Y%m%d"] initOpts
+
+record IdrisVersion where
+  constructor MkIdrisVersion
+  version : String
+%runElab deriveJSON defaultOpts `{IdrisVersion}
 
 main : IO ()
 main = do
@@ -233,19 +233,16 @@ main = do
   let final = go pkgs
   let split = splitStatus !final
   let date = !date
+  let version = !idrisVersion
   putStrLn $ show split
-  case date of
-       (Left x) => putStrLn "failed to parse date"
-       (Right x) =>
+  case (date, version) of
+       (Left x, _) => putStrLn "failed to parse date"
+       (Right x, Right y) =>
          let date' = trim x in
          do
-         _ <- liftIOEither $ exec $ MkCommand "mkdir" ["./package-set/\{date'}"] initOpts
+         _ <- liftIOEither $ exec $ MkCommand "mkdir" (words "-p ./package-set/\{date'}") initOpts
+         pass <- writeFile "./package-set/idris-versions.json" (show $ toJSON $ MkIdrisVersion y)
          pass <- writeFile "./package-set/\{date'}/passing.json" (show $ toJSON $ fst split)
          fail <- writeFile "./package-set/\{date'}/failing.json" (show $ toJSON $ snd split)
          pure ()
-
-{-
-:exec main
-foooo
-{"status":0,"stdout":"Main.idr\nMain.idr~\nbuild\nsupport.js\n","stdrr":""}
--}
+       (_, Left y) => putStrLn "failed to parse idris version"
