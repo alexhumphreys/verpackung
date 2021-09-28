@@ -99,6 +99,6 @@ jobs:
 
       - name: commit
         run: |
-          git add time.txt
+          git add package-set
           git commit -m "[skip ci] new package set"
           git push origin main
