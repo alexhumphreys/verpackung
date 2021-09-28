@@ -99,5 +99,6 @@ jobs:
           git status
           git diff
           git add package-set
+          git status
           git commit -m "[skip ci] new package set"
           git push origin main
