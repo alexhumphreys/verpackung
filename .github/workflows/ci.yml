@@ -21,6 +21,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Checkout Idris2
+        uses: actions/checkout@v2
+        with:
+          repository: idris-lang/Idris2
+          path: "./Idris2"
       - name: Get Idris2 commit
         id: get-idris2-commit
         run: echo "idris2-commit=$(git rev-parse @:./Idris2)" >> $GITHUB_ENV
