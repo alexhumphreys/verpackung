@@ -2,6 +2,10 @@
 
 # Verpackung
 
+Very naive attempt at a package set. Basically just grabbing repos and running `idris2 --build` on them and seeing if they compile, then outputting a list of that.
+
+See the `./package-set` dir for the output.
+
 ## Running
 
 To build this project, run:
