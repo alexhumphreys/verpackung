@@ -100,5 +100,5 @@ jobs:
           git diff
           git add package-set
           git status
-          git commit -m "[skip ci] new package set"
+          git commit -m "[skip ci] new package set\n\n$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           git push origin main
