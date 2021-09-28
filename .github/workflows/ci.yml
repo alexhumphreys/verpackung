@@ -61,6 +61,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Checkout Idris2
+        uses: actions/checkout@v2
+        with:
+          repository: alexhumphreys/idrall
+          path: "./idrall"
       - name: Download Idris2 with API Artifact
         uses: actions/download-artifact@v2
         with:
@@ -71,6 +76,11 @@ jobs:
           sudo apt-get install -y chezscheme
           echo "$HOME/.idris2/bin" >> $GITHUB_PATH
           chmod +x $HOME/.idris2/bin/idris2 $HOME/.idris2/bin/idris2_app/*
+      - name: Install build dependencies
+        run: |
+          cd idrall && make build && cd ..
+          mkdir -p ./depends/idrall-0
+          cp -r idrall/build/ttc/ ./depends/idrall-0
       - name: Build
         run: |
           make build
