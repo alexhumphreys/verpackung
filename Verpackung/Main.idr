@@ -241,7 +241,7 @@ main = do
          let date' = trim x in
          do
          _ <- liftIOEither $ exec $ MkCommand "mkdir" (words "-p ./package-set/\{date'}") initOpts
-         pass <- writeFile "./package-set/idris-versions.json" (show $ toJSON $ MkIdrisVersion y)
+         pass <- writeFile "./package-set/\{date'}/idris-version.json" (show $ toJSON $ MkIdrisVersion y)
          pass <- writeFile "./package-set/\{date'}/passing.json" (show $ toJSON $ fst split)
          fail <- writeFile "./package-set/\{date'}/failing.json" (show $ toJSON $ snd split)
          pure ()
