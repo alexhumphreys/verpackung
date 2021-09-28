@@ -96,6 +96,8 @@ jobs:
 
       - name: commit
         run: |
+          git status
+          git diff
           git add package-set
           git commit -m "[skip ci] new package set"
           git push origin main
