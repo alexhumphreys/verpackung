@@ -192,10 +192,10 @@ doBuild pkg@(MkPackage id repo ipkgFile depends) =
     copyDepends : List String -> IOEither VerpackungError ()
     copyDepends [] = pure ()
     copyDepends (dep :: xs) =
-      let depDir = "./tmp/\{id}/depends/\{dep}-0" in
+      let depDir = "./tmp/\{id}/depends" in
       do
         _ <- exec $ MkCommand "mkdir" (words "-p \{depDir}") initOpts
-        _ <- exec $ MkCommand "cp" (words "-r ./tmp/\{dep}/build/ttc/ \{depDir}") initOpts
+        _ <- exec $ MkCommand "cp" (words "-r ./tmp/\{dep}/build/ttc/ \{depDir}/\{dep}-0") initOpts
         copyDepends xs
 
 go : List (Package, IOEither VerpackungError PackageSetEntryStatus) -> IO (List PackageSetEntryStatus)
