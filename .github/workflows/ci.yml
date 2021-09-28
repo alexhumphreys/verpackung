@@ -81,10 +81,6 @@ jobs:
           cd idrall && make build && cd ..
           mkdir -p ./depends/idrall-0
           cp -r idrall/build/ttc/* ./depends/idrall-0
-          echo -- idrall
-          ls idrall/build/ttc/
-          echo -- depends
-          ls ./depends/idrall-0
       - name: Build
         run: |
           make build
@@ -92,6 +88,7 @@ jobs:
       - name: Build the package-set
         run: |
           make run-executable
+          ls -R ./tmp
       - name: setup git config
         run: |
           git config user.name "GitHub Actions Bot"
