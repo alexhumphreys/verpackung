@@ -2,9 +2,9 @@
 
 # Verpackung
 
-Very naive attempt at a package set. Basically just grabbing repos and running `idris2 --build` on them and seeing if they compile, then outputting a list of that.
+Very naive attempt at a package set. Basically just grabbing the latest of a list repos and running `idris2 --build` on them and seeing if they compile, then outputting a list of what passed and failed.
 
-See the `./package-set` dir for the output.
+See the `./package-set/packages.dhall` for the list of packages, and `./package-set/$SomeDate` dir for what passed and failed.
 
 ## Running
 
