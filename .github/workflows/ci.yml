@@ -89,7 +89,7 @@ jobs:
         run: |
           make build
         shell: bash
-      - name: Run
+      - name: Build the package-set
         run: |
           make run-executable
       - name: setup git config
