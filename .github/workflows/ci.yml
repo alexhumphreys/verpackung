@@ -76,7 +76,7 @@ jobs:
           sudo apt-get install -y chezscheme
           echo "$HOME/.idris2/bin" >> $GITHUB_PATH
           chmod +x $HOME/.idris2/bin/idris2 $HOME/.idris2/bin/idris2_app/*
-      - name: Install build dependencies
+      - name: Build idrall dependency
         run: |
           cd idrall && make build && cd ..
           mkdir -p ./depends/idrall-0
