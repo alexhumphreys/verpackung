@@ -45,15 +45,15 @@ Show PackageSetEntry where
   show (MkPackageSetEntry id repo sha) =
     "MkPackage \{show id} \{show repo} \{show sha}"
 
-data PackageSetEntryStatus
+data BuildStatus
   = Passing PackageSetEntry
   | Failing PackageSetEntry
 
-Show PackageSetEntryStatus where
+Show BuildStatus where
   show (Passing x) = "Passing \{show x}"
   show (Failing x) = "Failing \{show x}"
 
-doBuild : Package -> IOEither VerpackungError PackageSetEntryStatus
+doBuild : Package -> IOEither VerpackungError BuildStatus
 doBuild pkg@(MkPackage id repo ipkgFile depends) =
   let workdir = "./tmp/\{id}" in
   do
@@ -63,7 +63,7 @@ doBuild pkg@(MkPackage id repo ipkgFile depends) =
   copyDepends depends
   liftIO $ buildRes workdir (trim $ stdout sha)
   where
-    buildRes : String -> String -> IO PackageSetEntryStatus
+    buildRes : String -> String -> IO BuildStatus
     buildRes workdir sha =
       case exec $ MkCommand "idris2" (words "--build \{ipkgFile}") $ MkCommandOptions $ Just workdir of
            (MkIOEither w) => do
@@ -81,7 +81,7 @@ doBuild pkg@(MkPackage id repo ipkgFile depends) =
         _ <- exec $ MkCommand "cp" (words "-r ./tmp/\{dep}/build/ttc/ \{depDir}/\{dep}-\{fakeVersion}") initOpts
         copyDepends xs
 
-go : List (Package, IOEither VerpackungError PackageSetEntryStatus) -> IO (List PackageSetEntryStatus)
+go : List (Package, IOEither VerpackungError BuildStatus) -> IO (List BuildStatus)
 go [] = pure []
 go ((pkg, f) :: xs) = do
   Right res <- liftIOEither f
@@ -128,7 +128,7 @@ main = do
   where
     readPackagesDhall : IO (Either Error PackageSet)
     readPackagesDhall = liftIOEither $ deriveFromDhallString {ty=PackageSet} "./package-set/packages.dhall"
-    splitStatus : List PackageSetEntryStatus -> (List PackageSetEntry, List PackageSetEntry)
+    splitStatus : List BuildStatus -> (List PackageSetEntry, List PackageSetEntry)
     splitStatus [] = ([], [])
     splitStatus (x :: xs) =
       let rest = splitStatus xs in
