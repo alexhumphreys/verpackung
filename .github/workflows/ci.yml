@@ -94,6 +94,10 @@ jobs:
       - name: Build the package-set
         run: |
           make run-executable
+      - name: make dhall package-set
+        run: |
+          ./bin/json-to-dhall --file "./package-set/`date +%Y%m%d`/passing.json" > "./package-set/`date +%Y%m%d`/passing.dhall"
+          ./bin/json-to-dhall --file "./package-set/`date +%Y%m%d`/failing.json" > "./package-set/`date +%Y%m%d`/failing.dhall"
       - name: setup git config
         run: |
           git config user.name "GitHub Actions Bot"
@@ -119,6 +123,3 @@ jobs:
           git status
           echo "${{ env.COMMIT_MESSAGE }}" | git commit -F - || true # this can fail when there's no changes
           git push origin main
-      - name: make dhall package-set
-        run: |
-          ./bin/json-to-dhall --file "./package-set/`date +%Y%m%d`/passing.json"
