@@ -177,7 +177,7 @@ doBuild pkg@(MkPackage id repo ipkgFile depends) =
   cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts
   sha <- exec $ MkCommand "git" (words "-C \{workdir} rev-parse HEAD") initOpts
   copyDepends depends
-  go $ buildRes workdir (stdout sha)
+  go $ buildRes workdir (trim $ stdout sha)
   where
     go : IO PackageSetEntryStatus -> IOEither VerpackungError PackageSetEntryStatus
     go x = MkIOEither $ do
