@@ -96,11 +96,23 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
 
+      - name: create commit message
+        run: |
+          MY_STRING=$(cat << EOF
+          [skip ci] new package set
+
+          $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          EOF
+          )
+          echo "MY_STRING<<EOF" >> $GITHUB_ENV
+          echo "$MY_STRING" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        id: my_string
       - name: commit
         run: |
           git status
           git diff
           git add package-set
           git status
-          echo "[skip ci] new package set\n\n$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" | git commit -F - || true # this can fail when there's no changes
+          echo "{{ env.MY_STRING }}" | git commit -F - || true # this can fail when there's no changes
           git push origin main
