@@ -57,17 +57,12 @@ doBuild : Package -> IOEither VerpackungError PackageSetEntryStatus
 doBuild pkg@(MkPackage id repo ipkgFile depends) =
   let workdir = "./tmp/\{id}" in
   do
-  lsRes <- exec $ MkCommand "ls" [] initOpts
   cleanup <- exec $ MkCommand "rm" (words "-rf \{workdir}") initOpts
   cloneRes <- exec $ MkCommand "git" (words "clone \{repo} \{workdir}") initOpts
   sha <- exec $ MkCommand "git" (words "-C \{workdir} rev-parse HEAD") initOpts
   copyDepends depends
-  go $ buildRes workdir (trim $ stdout sha)
+  liftIO $ buildRes workdir (trim $ stdout sha)
   where
-    go : IO PackageSetEntryStatus -> IOEither VerpackungError PackageSetEntryStatus
-    go x = MkIOEither $ do
-      x' <- x
-      pure $ pure $ x'
     buildRes : String -> String -> IO PackageSetEntryStatus
     buildRes workdir sha =
       case exec $ MkCommand "idris2" (words "--build \{ipkgFile}") $ MkCommandOptions $ Just workdir of
@@ -106,12 +101,13 @@ writePackageSetToFS date version (passing, failing) =
   _ <- liftIOEither $ exec $ MkCommand "mkdir" (words "-p \{packageSetDir}") initOpts
   putStrLn $ show version
   _ <- writeFile "\{packageSetDir}/idris-version.json" (show $ toJSON $ MkIdrisVersion version)
-  putStrLn "Passing:"
+  putStrLn "Passing: \{show $ length passing}"
   putStrLn $ show passing
   _ <- writeFile "\{packageSetDir}/passing.json" (show $ toJSON $ passing)
-  putStrLn "Failing:"
+  putStrLn "Failing: \{show $ length failing}"
   putStrLn $ show failing
   _ <- writeFile "\{packageSetDir}/failing.json" (show $ toJSON $ failing)
+  putStrLn "Passing: \{show $ length passing}, Failing: \{show $ length failing}"
   pure ()
 
 main : IO ()

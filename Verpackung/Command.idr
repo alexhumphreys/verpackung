@@ -4,6 +4,7 @@ import Verpackung.Derive.Derive
 import public Verpackung.IOEither
 
 import Data.String
+import Data.String.Extra
 import Language.JSON
 import Language.Reflection
 
@@ -41,6 +42,11 @@ public export
 Show Command where
   show (MkCommand command args options) =
     "MkCommand \{show command} \{show args} \{show options}"
+
+public export
+prettyCommand : Command -> String
+prettyCommand (MkCommand command args options) =
+  join " " (command :: args)
 
 %foreign """
 node:lambda:(cmd)=> {
@@ -127,11 +133,11 @@ exec_internal cmd =
 
 public export
 exec : Command -> IOEither VerpackungError Response
-exec str = MkIOEither $
+exec cmd = MkIOEither $
   do
-  putStrLn $ show $ str
-  res <- exec_internal str
-  putStrLn $ res
+  putStrLn $ "$ \{prettyCommand cmd}"
+  res <- exec_internal cmd
+  putStrLn $ "→ \{res}"
   pure $ parseResponse res
 
 public export

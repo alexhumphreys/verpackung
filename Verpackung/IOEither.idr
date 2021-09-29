@@ -32,6 +32,12 @@ liftEither : Either e a -> IOEither e a
 liftEither = MkIOEither . pure
 
 export
+liftIO : IO a -> IOEither e a
+liftIO x = MkIOEither $ do
+  x' <- x
+  pure $ pure x'
+
+export
 liftIOEither : IOEither e a -> IO (Either e a)
 liftIOEither (MkIOEither x) = x
 
