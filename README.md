@@ -4,7 +4,7 @@
 
 Very naive attempt at a package set. Basically just grabbing the latest of a list repos and running `idris2 --build` on them and seeing if they compile, then outputting a list of what passed and failed.
 
-See the `./package-set/packages.dhall` for the list of packages, and `./package-set/$SomeDate` dir for what passed and failed.
+See the [`./package-set/packages.dhall`](https://github.com/alexhumphreys/verpackung/blob/main/package-set/packages.dhall) for the list of packages, and `./package-set/$SomeDate` dir for what passed and failed.
 
 ## Running
 
