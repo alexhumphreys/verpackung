@@ -143,13 +143,14 @@ Show PackageSet where
 record PackageSetEntry where
   constructor MkPackageSetEntry
   id : String
+  repo : String
   sha : Maybe String
 -- %runElab (deriveFromDhall Record `{ PackageSetEntry })
 %runElab deriveJSON defaultOpts `{PackageSetEntry}
 
 Show PackageSetEntry where
-  show (MkPackageSetEntry id sha) =
-    "MkPackage \{show id} \{show sha}"
+  show (MkPackageSetEntry id repo sha) =
+    "MkPackage \{show id} \{show repo} \{show sha}"
 
 data PackageSetEntryStatus
   = Passing PackageSetEntry
@@ -186,8 +187,8 @@ doBuild pkg@(MkPackage id repo ipkgFile depends) =
     buildRes workdir sha =
       case exec $ MkCommand "idris2" (words "--build \{ipkgFile}") $ MkCommandOptions $ Just workdir of
            (MkIOEither w) => do
-             Right w' <- w | Left err => pure $ Failing $ MkPackageSetEntry id $ Just sha
-             pure $ Passing $ MkPackageSetEntry id $ Just sha
+             Right w' <- w | Left err => pure $ Failing $ MkPackageSetEntry id repo $ Just sha
+             pure $ Passing $ MkPackageSetEntry id repo $ Just sha
     -- TODO copy transitive dependencies
     copyDepends : List String -> IOEither VerpackungError ()
     copyDepends [] = pure ()
@@ -202,7 +203,7 @@ go : List (Package, IOEither VerpackungError PackageSetEntryStatus) -> IO (List 
 go [] = pure []
 go ((pkg, f) :: xs) = do
   Right res <- liftIOEither f
-  | Left e => let this = Failing $ MkPackageSetEntry (id pkg) Nothing in
+  | Left e => let this = Failing $ MkPackageSetEntry (id pkg) (repo pkg) Nothing in
     pure (this :: !(go xs))
   pure (res :: !(go xs))
 
