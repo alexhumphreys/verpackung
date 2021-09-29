@@ -102,5 +102,5 @@ jobs:
           git diff
           git add package-set
           git status
-          git commit -m "[skip ci] new package set\n\n$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" || true # this can fail when there's no changes
+          echo "[skip ci] new package set\n\n$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" | git commit -F - || true # this can fail when there's no changes
           git push origin main
