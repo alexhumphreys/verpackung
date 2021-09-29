@@ -90,7 +90,6 @@ jobs:
       - name: Build the package-set
         run: |
           make run-executable
-          ls -R ./tmp
       - name: setup git config
         run: |
           git config user.name "GitHub Actions Bot"
@@ -98,14 +97,14 @@ jobs:
 
       - name: create commit message
         run: |
-          MY_STRING=$(cat << EOF
+          COMMIT_MESSAGE=$(cat << EOF
           [skip ci] new package set
 
           $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
           EOF
           )
-          echo "MY_STRING<<EOF" >> $GITHUB_ENV
-          echo "$MY_STRING" >> $GITHUB_ENV
+          echo "COMMIT_MESSAGE<<EOF" >> $GITHUB_ENV
+          echo "$COMMIT_MESSAGE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
         id: my_string
       - name: commit
@@ -114,5 +113,5 @@ jobs:
           git diff
           git add package-set
           git status
-          echo "${{ env.MY_STRING }}" | git commit -F - || true # this can fail when there's no changes
+          echo "${{ env.COMMIT_MESSAGE }}" | git commit -F - || true # this can fail when there's no changes
           git push origin main
