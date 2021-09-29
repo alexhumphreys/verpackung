@@ -78,6 +78,10 @@ jobs:
           sudo apt-get install -y chezscheme
           echo "$HOME/.idris2/bin" >> $GITHUB_PATH
           chmod +x $HOME/.idris2/bin/idris2 $HOME/.idris2/bin/idris2_app/*
+      - name: Install json-to-dhall
+        run: |
+          wget https://github.com/dhall-lang/dhall-haskell/releases/download/1.40.1/dhall-json-1.7.8-x86_64-linux.tar.bz2
+          tar -xvf dhall-json-1.7.8-x86_64-linux.tar.bz2
       - name: Build idrall dependency
         run: |
           cd idrall && make build && cd ..
@@ -115,3 +119,6 @@ jobs:
           git status
           echo "${{ env.COMMIT_MESSAGE }}" | git commit -F - || true # this can fail when there's no changes
           git push origin main
+      - name: make dhall package-set
+        run: |
+          ./bin/json-to-dhall --file "./package-set/`date +%Y%m%d`/passing.json"
