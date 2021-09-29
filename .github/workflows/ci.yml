@@ -114,5 +114,5 @@ jobs:
           git diff
           git add package-set
           git status
-          echo "{{ env.MY_STRING }}" | git commit -F - || true # this can fail when there's no changes
+          echo "${{ env.MY_STRING }}" | git commit -F - || true # this can fail when there's no changes
           git push origin main
