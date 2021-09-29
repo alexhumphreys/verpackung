@@ -6,18 +6,23 @@
     }
   , { id = "collie"
     , repo = "https://github.com/ohad/collie.git"
-    , ipkgFile = "collie.ipkg"
+    , ipkgFile = "./collie.ipkg"
     , depends = [] : List Text
     }
   , { id = "katla"
     , repo = "https://github.com/idris-community/katla.git"
-    , ipkgFile = "katla.ipkg"
+    , ipkgFile = "./katla.ipkg"
     , depends = ["idrall", "collie"] : List Text
     }
-  , { id = "idris2-elab-util"
+  , { id = "elab-util"
     , repo = "https://github.com/stefan-hoeck/idris2-elab-util.git"
-    , ipkgFile = "elab-util.ipkg"
+    , ipkgFile = "./elab-util.ipkg"
     , depends = [] : List Text
+    }
+  , { id = "sop"
+    , repo = "https://github.com/stefan-hoeck/idris2-sop.git"
+    , ipkgFile = "./sop.ipkg"
+    , depends = ["elab-util"] : List Text
     }
   ]
 }
