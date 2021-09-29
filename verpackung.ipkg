@@ -16,6 +16,7 @@ modules =
     Verpackung.Main
     , Verpackung.Derive.Derive
     , Verpackung.IOEither
+    , Verpackung.Command
 
 -- `main`
 -- the entrypoint for the main function for the executable
