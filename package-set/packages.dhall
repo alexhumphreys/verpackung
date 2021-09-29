@@ -14,6 +14,11 @@
     , ipkgFile = "./elab-util.ipkg"
     , depends = [] : List Text
     }
+  , { id = "comonad"
+    , repo = "https://github.com/stefan-hoeck/idris2-comonad.git"
+    , ipkgFile = "./comonad.ipkg"
+    , depends = [] : List Text
+    }
   , { id = "frex"
     , repo = "https://github.com/frex-project/idris-frex.git"
     , ipkgFile = "./frex.ipkg"
