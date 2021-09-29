@@ -14,5 +14,10 @@
     , ipkgFile = "katla.ipkg"
     , depends = ["idrall", "collie"] : List Text
     }
+  , { id = "idris2-elab-util"
+    , repo = "https://github.com/stefan-hoeck/idris2-elab-util.git"
+    , ipkgFile = "elab-util.ipkg"
+    , depends = [] : List Text
+    }
   ]
 }
