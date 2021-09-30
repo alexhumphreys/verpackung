@@ -26,4 +26,8 @@
   , repo = "https://github.com/idris-community/katla.git"
   , sha = "61b8fcfeb532ea81196b743782c9b54f506ca230"
   }
+, { id = "pretty-show"
+  , repo = "https://github.com/stefan-hoeck/idris2-pretty-show.git"
+  , sha = "4f6beeca0f1899bc8fcf2fe979ea293c00e466f8"
+  }
 ]
