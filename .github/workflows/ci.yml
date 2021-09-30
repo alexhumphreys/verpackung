@@ -116,6 +116,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
         id: my_string
       - name: commit
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           git status
           git diff
