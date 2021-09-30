@@ -34,5 +34,10 @@
     , ipkgFile = "./katla.ipkg"
     , depends = ["idrall", "collie"] : List Text
     }
+  , { id = "pretty-show"
+    , repo = "https://github.com/stefan-hoeck/idris2-pretty-show.git"
+    , ipkgFile = "./pretty-show.ipkg"
+    , depends = ["elab-util", "sop"] : List Text
+    }
   ]
 }
