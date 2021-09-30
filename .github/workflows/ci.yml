@@ -114,6 +114,7 @@ jobs:
           echo "COMMIT_MESSAGE<<EOF" >> $GITHUB_ENV
           echo "$COMMIT_MESSAGE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+          echo "$COMMIT_MESSAGE"
         id: my_string
       - name: commit
         if: ${{ github.ref == 'refs/heads/main' }}
