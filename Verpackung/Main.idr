@@ -69,7 +69,6 @@ doBuild pkg@(MkPackage id repo ipkgFile depends) =
            (MkIOEither w) => do
              Right w' <- w | Left err => pure $ Failing $ MkPackageSetEntry id repo $ Just sha
              pure $ Passing $ MkPackageSetEntry id repo $ Just sha
-    -- TODO copy transitive dependencies
     copyDepends : List String -> IOEither VerpackungError ()
     copyDepends [] = pure ()
     copyDepends (dep :: xs) =
