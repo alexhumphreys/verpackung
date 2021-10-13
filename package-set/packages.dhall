@@ -24,6 +24,11 @@
     , ipkgFile = "./frex.ipkg"
     , depends = [] : List Text
     }
+  , { id = "dot-parse"
+    , repo = "https://github.com/CodingCellist/idris2-dot-parse.git"
+    , ipkgFile = "./dot-parse.ipkg"
+    , depends = [] : List Text
+    }
   , { id = "sop"
     , repo = "https://github.com/stefan-hoeck/idris2-sop.git"
     , ipkgFile = "./sop.ipkg"
