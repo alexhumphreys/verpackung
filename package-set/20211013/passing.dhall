@@ -1,6 +1,6 @@
 [ { id = "idrall"
   , repo = "https://github.com/alexhumphreys/idrall.git"
-  , sha = "7946ea6561fb514bdd7835b42d56fe579227461e"
+  , sha = "435e3b8e92d2f7ae549555ca38cd918a917b4bbe"
   }
 , { id = "collie"
   , repo = "https://github.com/ohad/collie.git"
@@ -16,7 +16,11 @@
   }
 , { id = "frex"
   , repo = "https://github.com/frex-project/idris-frex.git"
-  , sha = "a8907c229159488d8a449d10af08ebfdbbac3e23"
+  , sha = "3b07f018eb2d297ed9e2d5ebb3c4170c2efd4e73"
+  }
+, { id = "dot-parse"
+  , repo = "https://github.com/CodingCellist/idris2-dot-parse.git"
+  , sha = "cb43167bcfb33f1606443af525e1aebffb35fcf8"
   }
 , { id = "sop"
   , repo = "https://github.com/stefan-hoeck/idris2-sop.git"
