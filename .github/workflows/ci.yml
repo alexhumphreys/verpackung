@@ -30,7 +30,11 @@ jobs:
           path: "./Idris2"
       - name: Get Idris2 commit
         id: get-idris2-commit
-        run: echo "idris2-commit=$(git rev-parse @:./Idris2)" >> $GITHUB_ENV
+        run: |
+          echo "idris2-commit=$(git -C ./Idris2 rev-parse HEAD)" >> $GITHUB_ENV
+      - name: Print Idris2 commit
+        run: |
+          echo "${{ env.idris2-commit }}"
       - name: Cache Idris2 with API
         id: cache-idris2-with-api
         uses: actions/cache@v2
